@@ -15,8 +15,21 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 # from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from rest_framework_nested import routers
+from core.views import ConcessionViewSet, VehiculeViewSet
+from django.shortcuts import redirect
+
+# Routeur principal pour les concessions
+router = routers.SimpleRouter()
+router.register(r'concessions', ConcessionViewSet)
+
+# Routeur imbriqué pour les véhicules d'une concession
+concession_router = routers.NestedSimpleRouter(router, r'concessions', lookup='concession')
+concession_router.register(r'vehicules', VehiculeViewSet, basename='concession-vehicules')
 
 urlpatterns = [
-    #    path('admin/', admin.site.urls),
+    path('', lambda request: redirect('/concessions/')),  # Redirige vers /concessions/
+    path('', include(router.urls)),  # Inclut les routes principales pour 'concessions'
+    path('', include(concession_router.urls)),  # Inclut les routes imbriquées pour 'vehicules'
 ]
